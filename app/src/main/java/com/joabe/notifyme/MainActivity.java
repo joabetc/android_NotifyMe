@@ -7,6 +7,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -47,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        button_cancel = findViewById(R.id.update);
+        button_cancel = findViewById(R.id.cancel);
         button_cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -75,9 +77,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void updateNotification() {}
+    public void updateNotification() {
+        Bitmap androidImage = BitmapFactory.decodeResource(getResources(), R.drawable.mascot_1);
+        NotificationCompat.Builder notifyBuilder = getNotificationBuilder();
+        notifyBuilder.setStyle(new NotificationCompat.BigPictureStyle()
+                .bigPicture(androidImage).setBigContentTitle("Notification Updated!"));
+        mNotifyManager.notify(NOTIFICATION_ID, notifyBuilder.build());
+    }
 
-    public void cancelNotification() {}
+    public void cancelNotification() {
+        mNotifyManager.cancel(NOTIFICATION_ID);
+    }
 
     private NotificationCompat.Builder getNotificationBuilder() {
         Intent notificationIntent = new Intent(this, MainActivity.class);
