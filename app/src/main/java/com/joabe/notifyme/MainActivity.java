@@ -69,7 +69,9 @@ public class MainActivity extends AppCompatActivity {
                 .setContentText("This is your notification text.")
                 .setSmallIcon(R.drawable.ic_android)
                 .setContentIntent(notificationPendingIntent)
-                .setAutoCancel(true);
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setDefaults(NotificationCompat.DEFAULT_ALL);
         return notifyBuilder;
     }
 }
