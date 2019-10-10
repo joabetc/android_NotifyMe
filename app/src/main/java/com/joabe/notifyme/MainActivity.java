@@ -21,6 +21,8 @@ public class MainActivity extends AppCompatActivity {
     private NotificationManager mNotifyManager;
 
     private Button button_notify;
+    private Button button_cancel;
+    private Button button_update;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +38,22 @@ public class MainActivity extends AppCompatActivity {
         });
 
         createNotificationChannel();
+
+        button_update = findViewById(R.id.update);
+        button_update.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                updateNotification();
+            }
+        });
+
+        button_cancel = findViewById(R.id.update);
+        button_cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                cancelNotification();
+            }
+        });
     }
 
     public void sendNotification() {
@@ -56,6 +74,10 @@ public class MainActivity extends AppCompatActivity {
             mNotifyManager.createNotificationChannel(notificationChannel);
         }
     }
+
+    public void updateNotification() {}
+
+    public void cancelNotification() {}
 
     private NotificationCompat.Builder getNotificationBuilder() {
         Intent notificationIntent = new Intent(this, MainActivity.class);
