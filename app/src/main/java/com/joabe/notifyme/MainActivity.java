@@ -2,6 +2,7 @@ package com.joabe.notifyme;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -15,6 +16,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
@@ -22,8 +24,11 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String PRIMARY_CHANNEL_ID = "primary_notification_channel";
     private static final String ACTION_UPDATE_NOTIFICATION =
-            "com.example.android.notifyme.ACTION_UPDATE_NOTIFICATION";
+            BuildConfig.APPLICATION_ID + ".ACTION_UPDATE_NOTIFICATION";
     private static final int NOTIFICATION_ID = 0;
+
+    static final String ACTION_CUSTOM_BROADCAST =
+            BuildConfig.APPLICATION_ID + ".ACTION_DISMISS_NOTIFICATION";
 
     public class NotificationReceiver extends BroadcastReceiver {
 
@@ -35,6 +40,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public class LocalReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getExtras().getString("action") == "DISABLE") {
+                cancelNotification();
+            }
+        }
+    }
+
     private NotificationManager mNotifyManager;
 
     private Button button_notify;
@@ -42,6 +57,9 @@ public class MainActivity extends AppCompatActivity {
     private Button button_update;
 
     private NotificationReceiver mReceiver = new NotificationReceiver();
+    private BroadcastReceiver mLocalReceiver = new LocalReceiver();
+
+    public MainActivity() {}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +94,9 @@ public class MainActivity extends AppCompatActivity {
 
         setNotificationButtonState(true, false, false);
         registerReceiver(mReceiver, new IntentFilter(ACTION_UPDATE_NOTIFICATION));
+
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(mLocalReceiver, new IntentFilter(ACTION_CUSTOM_BROADCAST));
     }
 
     public void sendNotification() {
@@ -104,7 +125,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateNotification() {
-        Bitmap androidImage = BitmapFactory.decodeResource(getResources(), R.drawable.mascot_1);
         NotificationCompat.Builder notifyBuilder = getNotificationBuilder();
 
         notifyBuilder.setStyle(new NotificationCompat.InboxStyle()
@@ -131,14 +151,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         unregisterReceiver(mReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mLocalReceiver);
         super.onDestroy();
     }
 
     private NotificationCompat.Builder getNotificationBuilder() {
         Intent notificationIntent = new Intent(this, MainActivity.class);
+        Intent dismissIntent = new Intent(this, NotificationDismissedReceiver.class);
 
         PendingIntent notificationPendingIntent = PendingIntent.getActivity(this,
                 NOTIFICATION_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        PendingIntent notificationDismissPendingIntent = PendingIntent.getBroadcast(this,
+                NOTIFICATION_ID, dismissIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
         NotificationCompat.Builder notifyBuilder =
                 new NotificationCompat.Builder(this, PRIMARY_CHANNEL_ID)
@@ -148,7 +173,8 @@ public class MainActivity extends AppCompatActivity {
                 .setContentIntent(notificationPendingIntent)
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setDefaults(NotificationCompat.DEFAULT_ALL);
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .setDeleteIntent(notificationDismissPendingIntent);
         return notifyBuilder;
     }
 }
